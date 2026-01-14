@@ -1,35 +1,99 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Navbar } from './components/Navbar';
+import { Hero } from './components/Hero';
+import { Features } from './components/Features';
+import { AuthModal } from './components/AuthModal';
+import { Dashboard } from './pages/Dashboard';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+type AuthMode = 'login' | 'signup';
+
+function LandingPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleOpenLogin = () => {
+    setAuthMode('login');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenSignup = () => {
+    setAuthMode('signup');
+    setIsModalOpen(true);
+  };
+
+  const handleAuthSuccess = (token: string, rememberMe: boolean) => {
+    login(token, rememberMe);
+    setIsModalOpen(false);
+    navigate('/dashboard');
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="app">
+      <Navbar onLoginClick={handleOpenLogin} onSignupClick={handleOpenSignup} />
+      <main>
+        <Hero onGetStarted={handleOpenSignup} />
+        <Features />
+      </main>
+      <AuthModal
+        isOpen={isModalOpen}
+        initialMode={authMode}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
+    </div>
+  );
 }
 
-export default App
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function DashboardPage() {
+  const { logout } = useAuth();
+
+  return <Dashboard onLogout={logout} />;
+}
+
+function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />}
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
