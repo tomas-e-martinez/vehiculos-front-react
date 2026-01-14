@@ -1,0 +1,28 @@
+name: Deploy vehicles-app to VPS
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            cd /var/www/vehiculos-front-react
+            git checkout master
+            git fetch origin
+            git pull origin master
+            npm install
+            VITE_API_BASE_URL=${{secrets.API_BASE_URL}} npm run build
