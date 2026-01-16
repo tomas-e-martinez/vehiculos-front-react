@@ -1,73 +1,80 @@
-# React + TypeScript + Vite
+# Vehículos - Gestión de Mantenimiento
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web para gestionar tus vehículos y su mantenimiento de forma inteligente. Registrá mantenimientos, programá recordatorios y nunca más te olvides de un cambio de aceite o revisión importante.
 
-Currently, two official plugins are available:
+## Tecnologías
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - Biblioteca de UI
+- **TypeScript** - Tipado estático
+- **Vite** - Build tool y dev server
+- **React Router DOM** - Navegación
 
-## React Compiler
+## Características
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Landing page con información del producto
+- Sistema de autenticación (login y registro)
+- Dashboard protegido para usuarios autenticados
+- Gestión de vehículos y sus mantenimientos
 
-## Expanding the ESLint configuration
+## Requisitos
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js 20 o superior
+- npm
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Instalación
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# Clonar el repositorio
+git clone <url-del-repo>
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Instalar dependencias
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts disponibles
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Iniciar servidor de desarrollo
+npm run dev
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Compilar para producción
+npm run build
+
+# Previsualizar build de producción
+npm run preview
+
+# Ejecutar linter
+npm run lint
 ```
+
+## Variables de entorno
+
+Creá un archivo `.env` en la raíz del proyecto:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+## Estructura del proyecto
+
+```
+src/
+├── components/     # Componentes reutilizables (Navbar, Hero, Features, AuthModal)
+├── context/        # Contextos de React (AuthContext)
+├── pages/          # Páginas de la aplicación (Dashboard)
+├── services/       # Servicios y llamadas a API
+├── App.tsx         # Componente principal con rutas
+└── main.tsx        # Punto de entrada
+```
+
+## Deploy
+
+El proyecto incluye CI/CD con GitHub Actions. Al pushear a la rama `master`, se buildea y despliega automáticamente al VPS configurado.
+
+### Secrets requeridos en GitHub
+
+- `API_BASE_URL` - URL base de la API
+- `HOST` - IP o dominio del servidor
+- `USERNAME` - Usuario SSH
+- `SSH_KEY` - Clave privada SSH
+- `DEPLOY_PATH` - Ruta de destino en el servidor
