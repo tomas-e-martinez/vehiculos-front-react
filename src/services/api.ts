@@ -45,8 +45,7 @@ export interface Vehicle {
   model: string;
   year: number;
   kilometers: number;
-  vehicleTypeId: number;
-  vehicleType?: VehicleType;
+  vehicleType: string;
 }
 
 class ApiService {
@@ -133,6 +132,10 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  async getVehicles(): Promise<Vehicle[]> {
+    return this.request<Vehicle[]>('/vehicles');
   }
 }
 

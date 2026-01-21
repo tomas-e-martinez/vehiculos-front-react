@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../services/api';
+import type { Vehicle } from '../services/api';
 import { VehicleFormModal } from '../components/VehicleFormModal';
 import './Dashboard.css';
 
@@ -10,6 +12,24 @@ interface DashboardProps {
 export function Dashboard({ onLogout }: DashboardProps) {
   const navigate = useNavigate();
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchVehicles = async () => {
+    try {
+      const data = await api.getVehicles();
+      setVehicles(data);
+    } catch (error) {
+      console.error('Error fetching vehicles:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
 
   const handleLogout = () => {
     onLogout();
@@ -22,11 +42,53 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
   const handleVehicleSuccess = () => {
     setIsVehicleModalOpen(false);
+    fetchVehicles();
+  };
+
+  const formatKilometers = (km: number) => {
+    return km.toLocaleString('es-ES');
   };
 
   return (
     <div className="dashboard">
-      <aside className="sidebar">
+      {/* Mobile Header */}
+      <header className="mobile-header">
+        <div className="mobile-logo">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M19 17H21V18C21 18.55 20.55 19 20 19H19V17Z" fill="currentColor"/>
+            <path d="M3 17H5V19H4C3.45 19 3 18.55 3 18V17Z" fill="currentColor"/>
+            <path d="M21 11L19.25 5.5C19 4.65 18.2 4 17.3 4H6.7C5.8 4 5 4.65 4.75 5.5L3 11V16C3 16.55 3.45 17 4 17H20C20.55 17 21 16.55 21 16V11Z" stroke="currentColor" strokeWidth="2"/>
+            <circle cx="7" cy="14" r="1.5" fill="currentColor"/>
+            <circle cx="17" cy="14" r="1.5" fill="currentColor"/>
+          </svg>
+          <span>AutoCare</span>
+        </div>
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Abrir menú"
+        >
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
+      <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
+        <button
+          className="sidebar-close"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-label="Cerrar menú"
+        >
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </button>
         <div className="sidebar-header">
           <div className="sidebar-logo">
             <svg viewBox="0 0 24 24" fill="none">
@@ -141,7 +203,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                 </svg>
               </div>
               <div className="stat-info">
-                <span className="stat-value">0</span>
+                <span className="stat-value">{vehicles.length}</span>
                 <span className="stat-label">Vehículos Registrados</span>
               </div>
             </div>
@@ -182,25 +244,75 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </div>
           </div>
 
-          <div className="empty-state">
-            <div className="empty-icon">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M19 17H21V18C21 18.55 20.55 19 20 19H19V17Z" fill="currentColor"/>
-                <path d="M3 17H5V19H4C3.45 19 3 18.55 3 18V17Z" fill="currentColor"/>
-                <path d="M21 11L19.25 5.5C19 4.65 18.2 4 17.3 4H6.7C5.8 4 5 4.65 4.75 5.5L3 11V16C3 16.55 3.45 17 4 17H20C20.55 17 21 16.55 21 16V11Z" stroke="currentColor" strokeWidth="2"/>
-                <circle cx="7" cy="14" r="1.5" fill="currentColor"/>
-                <circle cx="17" cy="14" r="1.5" fill="currentColor"/>
-              </svg>
+          {isLoading ? (
+            <div className="loading-state">
+              <div className="loading-spinner"></div>
+              <p>Cargando vehículos...</p>
             </div>
-            <h2>¡Comienza agregando tu primer vehículo!</h2>
-            <p>Registra tus vehículos para comenzar a gestionar su mantenimiento de forma inteligente.</p>
-            <button className="btn btn-primary btn-lg" onClick={handleOpenVehicleModal}>
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Agregar Mi Primer Vehículo
-            </button>
-          </div>
+          ) : vehicles.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M19 17H21V18C21 18.55 20.55 19 20 19H19V17Z" fill="currentColor"/>
+                  <path d="M3 17H5V19H4C3.45 19 3 18.55 3 18V17Z" fill="currentColor"/>
+                  <path d="M21 11L19.25 5.5C19 4.65 18.2 4 17.3 4H6.7C5.8 4 5 4.65 4.75 5.5L3 11V16C3 16.55 3.45 17 4 17H20C20.55 17 21 16.55 21 16V11Z" stroke="currentColor" strokeWidth="2"/>
+                  <circle cx="7" cy="14" r="1.5" fill="currentColor"/>
+                  <circle cx="17" cy="14" r="1.5" fill="currentColor"/>
+                </svg>
+              </div>
+              <h2>¡Comienza agregando tu primer vehículo!</h2>
+              <p>Registra tus vehículos para comenzar a gestionar su mantenimiento de forma inteligente.</p>
+              <button className="btn btn-primary btn-lg" onClick={handleOpenVehicleModal}>
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Agregar Mi Primer Vehículo
+              </button>
+            </div>
+          ) : (
+            <div className="vehicles-section">
+              <div className="section-header">
+                <h2>Mis Vehículos</h2>
+              </div>
+              <div className="vehicles-grid">
+                {vehicles.map(vehicle => (
+                  <div key={vehicle.id} className="vehicle-card">
+                    <div className="vehicle-card-header">
+                      <div className="vehicle-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                          <path d="M19 17H21V18C21 18.55 20.55 19 20 19H19V17Z" fill="currentColor"/>
+                          <path d="M3 17H5V19H4C3.45 19 3 18.55 3 18V17Z" fill="currentColor"/>
+                          <path d="M21 11L19.25 5.5C19 4.65 18.2 4 17.3 4H6.7C5.8 4 5 4.65 4.75 5.5L3 11V16C3 16.55 3.45 17 4 17H20C20.55 17 21 16.55 21 16V11Z" stroke="currentColor" strokeWidth="2"/>
+                          <circle cx="7" cy="14" r="1.5" fill="currentColor"/>
+                          <circle cx="17" cy="14" r="1.5" fill="currentColor"/>
+                        </svg>
+                      </div>
+                      <span className="vehicle-type-badge">{vehicle.vehicleType}</span>
+                    </div>
+                    <div className="vehicle-card-body">
+                      <h3 className="vehicle-name">{vehicle.brand} {vehicle.model}</h3>
+                      <div className="vehicle-details">
+                        <div className="vehicle-detail">
+                          <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                            <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                          <span>{vehicle.year}</span>
+                        </div>
+                        <div className="vehicle-detail">
+                          <svg viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                            <path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                          <span>{formatKilometers(vehicle.kilometers)} km</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
