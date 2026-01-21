@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { api } from '../services/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -20,6 +21,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => getStoredToken());
 
   const isAuthenticated = !!token;
+
+  // Keep API service in sync with current token
+  useEffect(() => {
+    api.setToken(token);
+  }, [token]);
 
   const login = (newToken: string, rememberMe: boolean) => {
     // Clear both storages first

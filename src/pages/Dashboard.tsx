@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
 import { VehicleFormModal } from '../components/VehicleFormModal';
 import './Dashboard.css';
 
@@ -11,14 +9,7 @@ interface DashboardProps {
 
 export function Dashboard({ onLogout }: DashboardProps) {
   const navigate = useNavigate();
-  const { token } = useAuth();
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (token) {
-      api.setToken(token);
-    }
-  }, [token]);
 
   const handleLogout = () => {
     onLogout();
