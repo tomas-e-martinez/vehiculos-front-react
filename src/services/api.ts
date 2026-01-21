@@ -26,11 +26,39 @@ interface ApiError {
   errors?: Record<string, string[]>;
 }
 
+export interface VehicleType {
+  id: number;
+  name: string;
+}
+
+export interface CreateVehicleRequest {
+  brand: string;
+  model: string;
+  year: number;
+  kilometers: number;
+  vehicleTypeId: number;
+}
+
+export interface Vehicle {
+  id: number;
+  brand: string;
+  model: string;
+  year: number;
+  kilometers: number;
+  vehicleTypeId: number;
+  vehicleType?: VehicleType;
+}
+
 class ApiService {
   private baseUrl: string;
+  private token: string | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  setToken(token: string | null) {
+    this.token = token;
   }
 
   private async request<T>(
@@ -39,12 +67,18 @@ class ApiService {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>),
+    };
+
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
     const config: RequestInit = {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
     };
 
     const response = await fetch(url, config);
@@ -85,6 +119,17 @@ class ApiService {
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
     return this.request<AuthResponse>('/users/signup', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getVehicleTypes(): Promise<VehicleType[]> {
+    return this.request<VehicleType[]>('/vehicle-types');
+  }
+
+  async createVehicle(data: CreateVehicleRequest): Promise<Vehicle> {
+    return this.request<Vehicle>('/vehicles', {
       method: 'POST',
       body: JSON.stringify(data),
     });

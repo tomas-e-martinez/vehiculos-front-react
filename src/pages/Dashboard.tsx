@@ -1,4 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
+import { VehicleFormModal } from '../components/VehicleFormModal';
 import './Dashboard.css';
 
 interface DashboardProps {
@@ -7,10 +11,26 @@ interface DashboardProps {
 
 export function Dashboard({ onLogout }: DashboardProps) {
   const navigate = useNavigate();
+  const { token } = useAuth();
+  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      api.setToken(token);
+    }
+  }, [token]);
 
   const handleLogout = () => {
     onLogout();
     navigate('/');
+  };
+
+  const handleOpenVehicleModal = () => {
+    setIsVehicleModalOpen(true);
+  };
+
+  const handleVehicleSuccess = () => {
+    setIsVehicleModalOpen(false);
   };
 
   return (
@@ -108,7 +128,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
             <p>Bienvenido de nuevo, aquí está el resumen de tus vehículos</p>
           </div>
           <div className="header-right">
-            <button className="btn btn-primary">
+            <button className="btn btn-primary" onClick={handleOpenVehicleModal}>
               <svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
@@ -183,7 +203,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </div>
             <h2>¡Comienza agregando tu primer vehículo!</h2>
             <p>Registra tus vehículos para comenzar a gestionar su mantenimiento de forma inteligente.</p>
-            <button className="btn btn-primary btn-lg">
+            <button className="btn btn-primary btn-lg" onClick={handleOpenVehicleModal}>
               <svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
@@ -192,6 +212,12 @@ export function Dashboard({ onLogout }: DashboardProps) {
           </div>
         </div>
       </main>
+
+      <VehicleFormModal
+        isOpen={isVehicleModalOpen}
+        onClose={() => setIsVehicleModalOpen(false)}
+        onSuccess={handleVehicleSuccess}
+      />
     </div>
   );
 }
